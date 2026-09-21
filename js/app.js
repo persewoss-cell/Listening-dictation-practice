@@ -4,10 +4,10 @@ const mainEl = document.getElementById("main");
 const homeBtn = document.getElementById("homeBtn");
 
 // ---------------- 음성 재생 (Web Speech API) ----------------
-// 단어(어절) 단위로 끊어서 순서대로 재생 -> 문장 안 띄어쓰기 지점에서
-// 살짝 더 쉬어 읽는 효과를 준다. 속도/간격은 설정 패널에서 조정 가능.
-const DEFAULT_SPEAK_RATE = 0.95;
-const DEFAULT_WORD_PAUSE_MS = 160;
+// 간격이 0이면 문장을 통째로 한 번에 재생해 가장 자연스럽게 읽고,
+// 간격을 올리면 어절 단위로 끊어서 그만큼 쉬어 읽는다.
+const DEFAULT_SPEAK_RATE = 1;
+const DEFAULT_WORD_PAUSE_MS = 0;
 const ITEM_PAUSE_MS = 1100; // 전체 다시듣기에서 문항 사이 쉬는 시간
 const VOICE_STORAGE_KEY = "hyunwoo-dictation-voice-uri";
 const RATE_STORAGE_KEY = "hyunwoo-dictation-rate";
@@ -44,6 +44,14 @@ function setKoreanVoice(voiceURI) {
 if (window.speechSynthesis) {
   pickKoreanVoice();
   window.speechSynthesis.onvoiceschanged = pickKoreanVoice;
+  // 일부 안드로이드 브라우저는 voiceschanged 이벤트 없이 음성 목록을
+  // 뒤늦게 채워 넣는 경우가 있어, 몇 초간 다시 확인해 준다.
+  let voicePollCount = 0;
+  const voicePollTimer = setInterval(() => {
+    voicePollCount += 1;
+    pickKoreanVoice();
+    if (koVoices.length > 0 || voicePollCount >= 8) clearInterval(voicePollTimer);
+  }, 500);
 }
 
 function supportsTTS() {
@@ -55,8 +63,19 @@ function stopSpeaking() {
   if (supportsTTS()) window.speechSynthesis.cancel();
 }
 
+function makeUtterance(text) {
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "ko-KR";
+  utter.rate = SPEAK_RATE;
+  utter.pitch = 1;
+  if (koVoice) utter.voice = koVoice;
+  return utter;
+}
+
 /**
- * 문장 하나를 어절 단위로 끊어 순서대로 읽는다.
+ * 문장 하나를 읽는다. 간격(WORD_PAUSE_MS)이 0이면 문장 전체를 한 번에
+ * 재생해 가장 자연스럽게 읽고, 0보다 크면 어절 단위로 끊어서 그만큼
+ * 쉬어가며 읽는다.
  * onDone: 모두 읽고 나면 호출. myToken이 최신 재생 세대와 다르면 중간에 조용히 멈춘다.
  */
 function speakSentence(text, myToken, onDone) {
@@ -64,6 +83,19 @@ function speakSentence(text, myToken, onDone) {
     onDone && onDone();
     return;
   }
+
+  if (WORD_PAUSE_MS <= 0) {
+    const utter = makeUtterance(text);
+    const finish = () => {
+      if (myToken !== playToken) return;
+      onDone && onDone();
+    };
+    utter.onend = finish;
+    utter.onerror = finish;
+    window.speechSynthesis.speak(utter);
+    return;
+  }
+
   const words = text.split(" ").filter(Boolean);
   let i = 0;
 
@@ -73,11 +105,7 @@ function speakSentence(text, myToken, onDone) {
       onDone && onDone();
       return;
     }
-    const utter = new SpeechSynthesisUtterance(words[i]);
-    utter.lang = "ko-KR";
-    utter.rate = SPEAK_RATE;
-    utter.pitch = 1;
-    if (koVoice) utter.voice = koVoice;
+    const utter = makeUtterance(words[i]);
     utter.onend = () => {
       if (myToken !== playToken) return;
       i += 1;
@@ -324,17 +352,25 @@ homeBtn.addEventListener("click", () => {
 
 const voiceSelectWrap = document.querySelector(".voice-select-wrap");
 const voiceSelect = document.getElementById("voiceSelect");
+const voiceRefreshBtn = document.getElementById("voiceRefreshBtn");
 
 function renderVoiceOptions() {
   if (!supportsTTS()) {
     voiceSelectWrap.style.display = "none";
     return;
   }
+  voiceSelectWrap.style.display = "flex";
+
   if (koVoices.length === 0) {
-    voiceSelectWrap.style.display = "none";
+    voiceSelect.innerHTML = "";
+    const opt = document.createElement("option");
+    opt.textContent = "목소리 찾는 중...";
+    voiceSelect.appendChild(opt);
+    voiceSelect.disabled = true;
     return;
   }
-  voiceSelectWrap.style.display = "flex";
+
+  voiceSelect.disabled = false;
   voiceSelect.innerHTML = "";
   koVoices.forEach((v) => {
     const opt = document.createElement("option");
@@ -348,6 +384,10 @@ function renderVoiceOptions() {
 voiceSelect.addEventListener("change", () => {
   stopSpeaking();
   setKoreanVoice(voiceSelect.value);
+});
+
+voiceRefreshBtn.addEventListener("click", () => {
+  pickKoreanVoice();
 });
 
 voiceChangeListeners.push(renderVoiceOptions);
@@ -364,11 +404,15 @@ const rateValue = document.getElementById("rateValue");
 const pauseRange = document.getElementById("pauseRange");
 const pauseValue = document.getElementById("pauseValue");
 
+function formatPause(ms) {
+  return ms <= 0 ? "자연스럽게 이어 읽기" : `${(ms / 1000).toFixed(2)}초`;
+}
+
 function syncSettingsUI() {
   rateRange.value = String(SPEAK_RATE);
   rateValue.textContent = `${SPEAK_RATE.toFixed(2)}배`;
   pauseRange.value = String(WORD_PAUSE_MS / 1000);
-  pauseValue.textContent = `${(WORD_PAUSE_MS / 1000).toFixed(2)}초`;
+  pauseValue.textContent = formatPause(WORD_PAUSE_MS);
 }
 
 function openSettings() {
@@ -394,7 +438,7 @@ rateRange.addEventListener("input", () => {
 
 pauseRange.addEventListener("input", () => {
   WORD_PAUSE_MS = Math.round(parseFloat(pauseRange.value) * 1000);
-  pauseValue.textContent = `${(WORD_PAUSE_MS / 1000).toFixed(2)}초`;
+  pauseValue.textContent = formatPause(WORD_PAUSE_MS);
   localStorage.setItem(PAUSE_STORAGE_KEY, String(WORD_PAUSE_MS));
 });
 

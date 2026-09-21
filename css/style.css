@@ -43,10 +43,12 @@ body {
 .app-header {
   background: linear-gradient(135deg, var(--header-bg), var(--header-bg-deep));
   color: #fff;
-  padding: clamp(20px, 3vw, 32px) clamp(20px, 4vw, 48px);
+  padding: clamp(16px, 2.4vw, 28px) clamp(20px, 4vw, 48px);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 10px 16px;
   box-shadow: var(--shadow);
   position: sticky;
   top: 0;
@@ -55,12 +57,14 @@ body {
 
 .app-title {
   font-family: "Jua", "Gowun Dodum", sans-serif;
-  font-size: clamp(24px, 3.2vw, 34px);
+  font-size: clamp(21px, 2.8vw, 30px);
   margin: 0;
   letter-spacing: -0.5px;
   display: flex;
   align-items: center;
   gap: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .app-title .emoji {
@@ -70,16 +74,18 @@ body {
 .header-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .voice-select-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: rgba(255, 255, 255, 0.22);
   border-radius: 999px;
-  padding: 6px 14px 6px 16px;
+  padding: 6px 10px 6px 14px;
   min-height: 48px;
 }
 
@@ -89,16 +95,38 @@ body {
 
 .voice-select-wrap select {
   font-family: inherit;
-  font-size: clamp(13px, 1.5vw, 15px);
+  font-size: 13px;
   font-weight: 600;
   color: #fff;
   background: transparent;
   border: none;
-  max-width: 34vw;
+  max-width: 110px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .voice-select-wrap select option {
   color: #33383f;
+}
+
+.voice-select-wrap select:disabled {
+  opacity: 0.7;
+}
+
+.voice-select-wrap button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  min-width: 32px;
+  min-height: 32px;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.voice-select-wrap button:active {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .home-btn {
@@ -106,15 +134,17 @@ body {
   border: none;
   color: #fff;
   font-family: inherit;
-  font-size: clamp(15px, 1.8vw, 18px);
+  font-size: clamp(14px, 1.7vw, 18px);
   font-weight: 600;
-  padding: 12px 22px;
+  padding: 12px 20px;
   border-radius: 999px;
   cursor: pointer;
   min-height: 48px;
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: background 0.15s ease, transform 0.1s ease;
 }
 
