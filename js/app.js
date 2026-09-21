@@ -20,6 +20,7 @@ if (Number.isNaN(WORD_PAUSE_MS)) WORD_PAUSE_MS = DEFAULT_WORD_PAUSE_MS;
 let koVoices = []; // 이 기기/브라우저가 제공하는 한국어 음성 목록
 let koVoice = null; // 현재 선택된 음성
 let playToken = 0; // 재생 세대 토큰: 새 재생이 시작되면 이전 재생 체인을 무효화
+let voiceListGaveUp = false; // 한참 찾아도 목소리 목록이 하나도 안 잡히는 기기/브라우저
 const voiceChangeListeners = [];
 
 function pickKoreanVoice() {
@@ -50,7 +51,13 @@ if (window.speechSynthesis) {
   const voicePollTimer = setInterval(() => {
     voicePollCount += 1;
     pickKoreanVoice();
-    if (koVoices.length > 0 || voicePollCount >= 8) clearInterval(voicePollTimer);
+    if (koVoices.length > 0 || voicePollCount >= 8) {
+      clearInterval(voicePollTimer);
+      if (koVoices.length === 0) {
+        voiceListGaveUp = true;
+        voiceChangeListeners.forEach((fn) => fn());
+      }
+    }
   }, 500);
 }
 
@@ -70,6 +77,15 @@ function makeUtterance(text) {
   utter.pitch = 1;
   if (koVoice) utter.voice = koVoice;
   return utter;
+}
+
+// 일부 기기는 실제로 말을 한 번 시켜봐야 그제서야 음성 목록이 채워진다.
+// (getVoices()가 계속 빈 배열만 주다가, speak() 이후에야 값이 생기는 경우)
+function retryVoicePickAfterSpeak() {
+  if (koVoices.length > 0) return;
+  setTimeout(() => {
+    if (koVoices.length === 0) pickKoreanVoice();
+  }, 400);
 }
 
 /**
@@ -93,6 +109,7 @@ function speakSentence(text, myToken, onDone) {
     utter.onend = finish;
     utter.onerror = finish;
     window.speechSynthesis.speak(utter);
+    retryVoicePickAfterSpeak();
     return;
   }
 
@@ -117,6 +134,7 @@ function speakSentence(text, myToken, onDone) {
       setTimeout(speakNext, WORD_PAUSE_MS);
     };
     window.speechSynthesis.speak(utter);
+    retryVoicePickAfterSpeak();
   }
   speakNext();
 }
@@ -364,7 +382,7 @@ function renderVoiceOptions() {
   if (koVoices.length === 0) {
     voiceSelect.innerHTML = "";
     const opt = document.createElement("option");
-    opt.textContent = "목소리 찾는 중...";
+    opt.textContent = voiceListGaveUp ? "기본 목소리로 재생돼요" : "목소리 찾는 중...";
     voiceSelect.appendChild(opt);
     voiceSelect.disabled = true;
     return;
@@ -387,6 +405,7 @@ voiceSelect.addEventListener("change", () => {
 });
 
 voiceRefreshBtn.addEventListener("click", () => {
+  voiceListGaveUp = false;
   pickKoreanVoice();
 });
 
