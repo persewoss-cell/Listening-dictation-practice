@@ -129,6 +129,21 @@ body {
   background: rgba(255, 255, 255, 0.25);
 }
 
+.pause-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  padding: 6px 14px;
+  min-height: 48px;
+  color: #fff;
+  font-size: clamp(13px, 1.6vw, 15px);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .home-btn {
   background: rgba(255, 255, 255, 0.22);
   border: none;
@@ -475,29 +490,11 @@ main {
   color: var(--text-sub);
 }
 
-.settings-hint-left {
-  justify-content: flex-start;
-  margin-top: -4px;
-  margin-bottom: clamp(18px, 2.4vw, 24px);
-}
-
-.settings-row-inline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.settings-label-text {
-  font-size: clamp(16px, 1.9vw, 18px);
-  font-weight: 600;
-}
-
 .toggle-switch {
   position: relative;
   display: inline-block;
-  width: 58px;
-  height: 34px;
+  width: 46px;
+  height: 27px;
   flex-shrink: 0;
 }
 
@@ -510,7 +507,7 @@ main {
 .toggle-slider {
   position: absolute;
   inset: 0;
-  background: #d5dae1;
+  background: rgba(255, 255, 255, 0.35);
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.15s ease;
@@ -519,10 +516,10 @@ main {
 .toggle-slider::before {
   content: "";
   position: absolute;
-  width: 26px;
-  height: 26px;
-  left: 4px;
-  top: 4px;
+  width: 21px;
+  height: 21px;
+  left: 3px;
+  top: 3px;
   background: #fff;
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -530,11 +527,11 @@ main {
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: var(--accent-reveal);
+  background: #1f8f5f;
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
-  transform: translateX(24px);
+  transform: translateX(19px);
 }
 
 .reset-btn {

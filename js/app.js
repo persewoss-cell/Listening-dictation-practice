@@ -413,7 +413,7 @@ voiceRefreshBtn.addEventListener("click", () => {
 voiceChangeListeners.push(renderVoiceOptions);
 renderVoiceOptions();
 
-// ---------------- 속도 설정 / 띄어 읽기 패널 ----------------
+// ---------------- 재생 속도 설정 패널 ----------------
 
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsBackdrop = document.getElementById("settingsBackdrop");
@@ -421,16 +421,10 @@ const settingsCloseBtn = document.getElementById("settingsCloseBtn");
 const settingsResetBtn = document.getElementById("settingsResetBtn");
 const rateRange = document.getElementById("rateRange");
 const rateValue = document.getElementById("rateValue");
-const pauseToggle = document.getElementById("pauseToggle");
-const pauseHint = document.getElementById("pauseHint");
 
 function syncSettingsUI() {
   rateRange.value = String(SPEAK_RATE);
   rateValue.textContent = `${SPEAK_RATE.toFixed(2)}배`;
-  pauseToggle.checked = PAUSE_ON;
-  pauseHint.textContent = PAUSE_ON
-    ? "어절 사이를 살짝(0.02초)씩 끊어서 읽어요"
-    : "어절을 붙여서 자연스럽게 읽어요";
 }
 
 function openSettings() {
@@ -454,20 +448,22 @@ rateRange.addEventListener("input", () => {
   localStorage.setItem(RATE_STORAGE_KEY, String(SPEAK_RATE));
 });
 
+settingsResetBtn.addEventListener("click", () => {
+  SPEAK_RATE = DEFAULT_SPEAK_RATE;
+  localStorage.removeItem(RATE_STORAGE_KEY);
+  syncSettingsUI();
+});
+
+// ---------------- 띄어 읽기 토글 (헤더) ----------------
+
+const pauseToggle = document.getElementById("pauseToggle");
+
+pauseToggle.checked = PAUSE_ON;
+
 pauseToggle.addEventListener("change", () => {
   PAUSE_ON = pauseToggle.checked;
   WORD_PAUSE_MS = PAUSE_ON ? PAUSE_ON_MS : PAUSE_OFF_MS;
   localStorage.setItem(PAUSE_STORAGE_KEY, PAUSE_ON ? "1" : "0");
-  syncSettingsUI();
-});
-
-settingsResetBtn.addEventListener("click", () => {
-  SPEAK_RATE = DEFAULT_SPEAK_RATE;
-  PAUSE_ON = false;
-  WORD_PAUSE_MS = PAUSE_OFF_MS;
-  localStorage.removeItem(RATE_STORAGE_KEY);
-  localStorage.removeItem(PAUSE_STORAGE_KEY);
-  syncSettingsUI();
 });
 
 window.addEventListener("hashchange", render);
