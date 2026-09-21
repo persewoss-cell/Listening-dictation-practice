@@ -366,6 +366,103 @@ main {
   display: block;
 }
 
+/* ---------- 설정 패널 ---------- */
+
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 25, 15, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.settings-backdrop[hidden] {
+  display: none;
+}
+
+.settings-modal {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: clamp(22px, 3vw, 30px);
+  width: min(460px, 100%);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.settings-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.settings-modal-head h2 {
+  font-family: "Jua", sans-serif;
+  font-size: clamp(19px, 2.2vw, 23px);
+  margin: 0;
+  color: var(--text-main);
+}
+
+.close-btn {
+  background: #e9edf2;
+  color: var(--text-sub);
+  min-width: 40px;
+  min-height: 40px;
+  font-size: 18px;
+}
+
+.settings-row {
+  margin-bottom: clamp(18px, 2.4vw, 24px);
+}
+
+.settings-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: clamp(16px, 1.9vw, 18px);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.settings-value {
+  color: var(--header-bg-deep);
+  font-family: "Jua", sans-serif;
+}
+
+.settings-row input[type="range"] {
+  width: 100%;
+  height: 44px;
+  accent-color: var(--header-bg-deep);
+  cursor: pointer;
+}
+
+.settings-hint {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.reset-btn {
+  width: 100%;
+  background: #eef1f5;
+  color: var(--text-sub);
+  border: none;
+  border-radius: 999px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 12px;
+  min-height: 46px;
+  cursor: pointer;
+}
+
+.reset-btn:active {
+  background: #e0e4ea;
+}
+
 footer.app-footer {
   text-align: center;
   color: var(--text-sub);

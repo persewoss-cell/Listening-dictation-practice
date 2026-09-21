@@ -5,11 +5,17 @@ const homeBtn = document.getElementById("homeBtn");
 
 // ---------------- 음성 재생 (Web Speech API) ----------------
 // 단어(어절) 단위로 끊어서 순서대로 재생 -> 문장 안 띄어쓰기 지점에서
-// 살짝 더 쉬어 읽는 효과를 준다.
-const SPEAK_RATE = 0.95;
-const WORD_PAUSE_MS = 160; // 어절 사이 쉬는 시간
+// 살짝 더 쉬어 읽는 효과를 준다. 속도/간격은 설정 패널에서 조정 가능.
+const DEFAULT_SPEAK_RATE = 0.95;
+const DEFAULT_WORD_PAUSE_MS = 160;
 const ITEM_PAUSE_MS = 1100; // 전체 다시듣기에서 문항 사이 쉬는 시간
 const VOICE_STORAGE_KEY = "hyunwoo-dictation-voice-uri";
+const RATE_STORAGE_KEY = "hyunwoo-dictation-rate";
+const PAUSE_STORAGE_KEY = "hyunwoo-dictation-pause-ms";
+
+let SPEAK_RATE = parseFloat(localStorage.getItem(RATE_STORAGE_KEY)) || DEFAULT_SPEAK_RATE;
+let WORD_PAUSE_MS = parseInt(localStorage.getItem(PAUSE_STORAGE_KEY), 10);
+if (Number.isNaN(WORD_PAUSE_MS)) WORD_PAUSE_MS = DEFAULT_WORD_PAUSE_MS;
 
 let koVoices = []; // 이 기기/브라우저가 제공하는 한국어 음성 목록
 let koVoice = null; // 현재 선택된 음성
@@ -346,6 +352,59 @@ voiceSelect.addEventListener("change", () => {
 
 voiceChangeListeners.push(renderVoiceOptions);
 renderVoiceOptions();
+
+// ---------------- 속도 / 간격 설정 패널 ----------------
+
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsBackdrop = document.getElementById("settingsBackdrop");
+const settingsCloseBtn = document.getElementById("settingsCloseBtn");
+const settingsResetBtn = document.getElementById("settingsResetBtn");
+const rateRange = document.getElementById("rateRange");
+const rateValue = document.getElementById("rateValue");
+const pauseRange = document.getElementById("pauseRange");
+const pauseValue = document.getElementById("pauseValue");
+
+function syncSettingsUI() {
+  rateRange.value = String(SPEAK_RATE);
+  rateValue.textContent = `${SPEAK_RATE.toFixed(2)}배`;
+  pauseRange.value = String(WORD_PAUSE_MS / 1000);
+  pauseValue.textContent = `${(WORD_PAUSE_MS / 1000).toFixed(2)}초`;
+}
+
+function openSettings() {
+  syncSettingsUI();
+  settingsBackdrop.hidden = false;
+}
+
+function closeSettings() {
+  settingsBackdrop.hidden = true;
+}
+
+settingsBtn.addEventListener("click", openSettings);
+settingsCloseBtn.addEventListener("click", closeSettings);
+settingsBackdrop.addEventListener("click", (e) => {
+  if (e.target === settingsBackdrop) closeSettings();
+});
+
+rateRange.addEventListener("input", () => {
+  SPEAK_RATE = parseFloat(rateRange.value);
+  rateValue.textContent = `${SPEAK_RATE.toFixed(2)}배`;
+  localStorage.setItem(RATE_STORAGE_KEY, String(SPEAK_RATE));
+});
+
+pauseRange.addEventListener("input", () => {
+  WORD_PAUSE_MS = Math.round(parseFloat(pauseRange.value) * 1000);
+  pauseValue.textContent = `${(WORD_PAUSE_MS / 1000).toFixed(2)}초`;
+  localStorage.setItem(PAUSE_STORAGE_KEY, String(WORD_PAUSE_MS));
+});
+
+settingsResetBtn.addEventListener("click", () => {
+  SPEAK_RATE = DEFAULT_SPEAK_RATE;
+  WORD_PAUSE_MS = DEFAULT_WORD_PAUSE_MS;
+  localStorage.removeItem(RATE_STORAGE_KEY);
+  localStorage.removeItem(PAUSE_STORAGE_KEY);
+  syncSettingsUI();
+});
 
 window.addEventListener("hashchange", render);
 window.addEventListener("DOMContentLoaded", render);
