@@ -1,0 +1,305 @@
+// 현우의 받아쓰기 연습 - 화면 렌더링 & 음성(TTS) 로직
+
+const mainEl = document.getElementById("main");
+const homeBtn = document.getElementById("homeBtn");
+
+// ---------------- 음성 재생 (Web Speech API) ----------------
+// 단어(어절) 단위로 끊어서 순서대로 재생 -> 문장 안 띄어쓰기 지점에서
+// 살짝 더 쉬어 읽는 효과를 준다. 재생 속도도 기본보다 느리게 설정.
+const SPEAK_RATE = 0.82;
+const WORD_PAUSE_MS = 260; // 어절 사이 쉬는 시간
+const ITEM_PAUSE_MS = 1100; // 전체 다시듣기에서 문항 사이 쉬는 시간
+
+let koVoice = null;
+let playToken = 0; // 재생 세대 토큰: 새 재생이 시작되면 이전 재생 체인을 무효화
+
+function pickKoreanVoice() {
+  const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  koVoice =
+    voices.find((v) => v.lang === "ko-KR") ||
+    voices.find((v) => v.lang && v.lang.startsWith("ko")) ||
+    null;
+}
+
+if (window.speechSynthesis) {
+  pickKoreanVoice();
+  window.speechSynthesis.onvoiceschanged = pickKoreanVoice;
+}
+
+function supportsTTS() {
+  return "speechSynthesis" in window;
+}
+
+function stopSpeaking() {
+  playToken += 1;
+  if (supportsTTS()) window.speechSynthesis.cancel();
+}
+
+/**
+ * 문장 하나를 어절 단위로 끊어 순서대로 읽는다.
+ * onDone: 모두 읽고 나면 호출. myToken이 최신 재생 세대와 다르면 중간에 조용히 멈춘다.
+ */
+function speakSentence(text, myToken, onDone) {
+  if (!supportsTTS()) {
+    onDone && onDone();
+    return;
+  }
+  const words = text.split(" ").filter(Boolean);
+  let i = 0;
+
+  function speakNext() {
+    if (myToken !== playToken) return; // 다른 재생이 시작되어 무효화됨
+    if (i >= words.length) {
+      onDone && onDone();
+      return;
+    }
+    const utter = new SpeechSynthesisUtterance(words[i]);
+    utter.lang = "ko-KR";
+    utter.rate = SPEAK_RATE;
+    utter.pitch = 1;
+    if (koVoice) utter.voice = koVoice;
+    utter.onend = () => {
+      if (myToken !== playToken) return;
+      i += 1;
+      setTimeout(speakNext, WORD_PAUSE_MS);
+    };
+    utter.onerror = () => {
+      if (myToken !== playToken) return;
+      i += 1;
+      setTimeout(speakNext, WORD_PAUSE_MS);
+    };
+    window.speechSynthesis.speak(utter);
+  }
+  speakNext();
+}
+
+// ---------------- 라우팅 ----------------
+
+function currentRoute() {
+  const hash = window.location.hash.replace(/^#\/?/, "");
+  if (hash.startsWith("round/")) {
+    const id = parseInt(hash.split("/")[1], 10);
+    const round = ROUNDS.find((r) => r.id === id);
+    if (round) return { view: "round", round };
+  }
+  return { view: "home" };
+}
+
+function render() {
+  stopSpeaking();
+  const route = currentRoute();
+  homeBtn.style.visibility = route.view === "home" ? "hidden" : "visible";
+  if (route.view === "round") {
+    renderRoundView(route.round);
+  } else {
+    renderHomeView();
+  }
+  mainEl.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+  window.scrollTo(0, 0);
+}
+
+// ---------------- 홈 화면 ----------------
+
+function renderHomeView() {
+  const units = [];
+  const unitIndex = new Map();
+  for (const round of ROUNDS) {
+    if (!unitIndex.has(round.unit)) {
+      unitIndex.set(round.unit, { unit: round.unit, rounds: [] });
+      units.push(unitIndex.get(round.unit));
+    }
+    unitIndex.get(round.unit).rounds.push(round);
+  }
+
+  mainEl.innerHTML = "";
+
+  if (!supportsTTS()) {
+    const warn = document.createElement("div");
+    warn.className = "tts-warning";
+    warn.dataset.show = "true";
+    warn.textContent =
+      "⚠️ 이 브라우저에서는 음성 읽어주기 기능을 사용할 수 없어요. 최신 크롬이나 사파리 브라우저로 열어 주세요.";
+    mainEl.appendChild(warn);
+  }
+
+  for (const group of units) {
+    const section = document.createElement("section");
+    section.className = "unit-section";
+
+    const heading = document.createElement("h2");
+    heading.className = "unit-heading";
+    heading.textContent = group.unit;
+    section.appendChild(heading);
+
+    const grid = document.createElement("div");
+    grid.className = "round-grid";
+
+    for (const round of group.rounds) {
+      const card = document.createElement("button");
+      card.className = "round-card";
+      card.type = "button";
+      card.innerHTML = `
+        <span class="round-num">${round.id}회</span>
+        <span class="round-progress">문항 ${round.items.length}개</span>
+      `;
+      card.addEventListener("click", () => {
+        window.location.hash = `#/round/${round.id}`;
+      });
+      grid.appendChild(card);
+    }
+
+    section.appendChild(grid);
+    mainEl.appendChild(section);
+  }
+}
+
+// ---------------- 회차 상세 화면 ----------------
+
+function renderRoundView(round) {
+  mainEl.innerHTML = "";
+
+  if (!supportsTTS()) {
+    const warn = document.createElement("div");
+    warn.className = "tts-warning";
+    warn.dataset.show = "true";
+    warn.textContent =
+      "⚠️ 이 브라우저에서는 음성 읽어주기 기능을 사용할 수 없어요. 최신 크롬이나 사파리 브라우저로 열어 주세요.";
+    mainEl.appendChild(warn);
+  }
+
+  const head = document.createElement("div");
+  head.className = "round-view-head";
+  head.innerHTML = `
+    <h2 class="round-view-title">${round.id}회 받아쓰기
+      <span class="unit-tag">${round.unit}</span>
+    </h2>
+  `;
+
+  const replayBtn = document.createElement("button");
+  replayBtn.type = "button";
+  replayBtn.className = "replay-all-btn";
+  replayBtn.innerHTML = `<span>🔁</span><span>전체 다시듣기</span>`;
+  head.appendChild(replayBtn);
+  mainEl.appendChild(head);
+
+  const list = document.createElement("div");
+  list.className = "item-list";
+  mainEl.appendChild(list);
+
+  const itemRows = [];
+
+  round.items.forEach((text, idx) => {
+    const row = document.createElement("div");
+    row.className = "dictation-item";
+    row.dataset.active = "false";
+
+    const num = document.createElement("div");
+    num.className = "item-num";
+    num.textContent = String(idx + 1);
+
+    const textWrap = document.createElement("div");
+    textWrap.className = "item-text-wrap";
+    const textEl = document.createElement("div");
+    textEl.className = "item-text";
+    textEl.dataset.hidden = "true";
+    textEl.textContent = text;
+    const hint = document.createElement("div");
+    hint.className = "item-hint";
+    hint.textContent = "스피커 버튼을 눌러 듣고, 정답은 '보이기'로 확인해 보세요";
+    textWrap.appendChild(textEl);
+    textWrap.appendChild(hint);
+
+    const controls = document.createElement("div");
+    controls.className = "item-controls";
+
+    const speakBtn = document.createElement("button");
+    speakBtn.type = "button";
+    speakBtn.className = "icon-btn speak-btn";
+    speakBtn.setAttribute("aria-label", `${idx + 1}번 문항 듣기`);
+    speakBtn.textContent = "🔊";
+
+    const revealBtn = document.createElement("button");
+    revealBtn.type = "button";
+    revealBtn.className = "icon-btn reveal-btn";
+    revealBtn.setAttribute("aria-label", `${idx + 1}번 문항 정답 보기`);
+    revealBtn.textContent = "👁";
+
+    revealBtn.addEventListener("click", () => {
+      const hidden = textEl.dataset.hidden === "true";
+      textEl.dataset.hidden = hidden ? "false" : "true";
+      revealBtn.dataset.revealed = hidden ? "true" : "false";
+      hint.style.visibility = hidden ? "hidden" : "visible";
+    });
+
+    speakBtn.addEventListener("click", () => {
+      stopSpeaking();
+      const myToken = playToken;
+      itemRows.forEach((r) => (r.row.dataset.active = "false"));
+      row.dataset.active = "true";
+      speakBtn.dataset.playing = "true";
+      replayBtn.dataset.playing = "false";
+      speakSentence(text, myToken, () => {
+        if (myToken !== playToken) return;
+        speakBtn.dataset.playing = "false";
+        row.dataset.active = "false";
+      });
+    });
+
+    controls.appendChild(speakBtn);
+    controls.appendChild(revealBtn);
+
+    row.appendChild(num);
+    row.appendChild(textWrap);
+    row.appendChild(controls);
+    list.appendChild(row);
+
+    itemRows.push({ row, speakBtn, text });
+  });
+
+  replayBtn.addEventListener("click", () => {
+    if (replayBtn.dataset.playing === "true") {
+      stopSpeaking();
+      replayBtn.dataset.playing = "false";
+      itemRows.forEach((r) => {
+        r.row.dataset.active = "false";
+        r.speakBtn.dataset.playing = "false";
+      });
+      return;
+    }
+    stopSpeaking();
+    const myToken = playToken;
+    replayBtn.dataset.playing = "true";
+    replayBtn.querySelector("span:last-child").textContent = "중지하기";
+
+    let i = 0;
+    function playNext() {
+      if (myToken !== playToken) return;
+      if (i >= itemRows.length) {
+        replayBtn.dataset.playing = "false";
+        replayBtn.querySelector("span:last-child").textContent = "전체 다시듣기";
+        itemRows.forEach((r) => (r.row.dataset.active = "false"));
+        return;
+      }
+      itemRows.forEach((r) => (r.row.dataset.active = "false"));
+      const current = itemRows[i];
+      current.row.dataset.active = "true";
+      current.speakBtn.dataset.playing = "true";
+      current.row.scrollIntoView({ behavior: "smooth", block: "center" });
+      speakSentence(current.text, myToken, () => {
+        if (myToken !== playToken) return;
+        current.speakBtn.dataset.playing = "false";
+        i += 1;
+        setTimeout(playNext, ITEM_PAUSE_MS);
+      });
+    }
+    playNext();
+  });
+}
+
+homeBtn.addEventListener("click", () => {
+  window.location.hash = "#/";
+});
+
+window.addEventListener("hashchange", render);
+window.addEventListener("DOMContentLoaded", render);
+render();

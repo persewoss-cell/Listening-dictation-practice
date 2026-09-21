@@ -1,0 +1,351 @@
+@import url("https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap");
+
+:root {
+  --bg: #fdf6ec;
+  --card-bg: #ffffff;
+  --header-bg: #6c9ef8;
+  --header-bg-deep: #4f7ff0;
+  --text-main: #33383f;
+  --text-sub: #7a8290;
+  --accent-speak: #ff9a5a;
+  --accent-speak-deep: #f57d33;
+  --accent-reveal: #3fbf8f;
+  --accent-reveal-deep: #2ca377;
+  --accent-replay: #8a6cf7;
+  --accent-replay-deep: #7050e0;
+  --border: #ecdfc9;
+  --shadow: 0 4px 14px rgba(80, 60, 20, 0.08);
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text-main);
+  font-family: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+body {
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+.app-header {
+  background: linear-gradient(135deg, var(--header-bg), var(--header-bg-deep));
+  color: #fff;
+  padding: clamp(20px, 3vw, 32px) clamp(20px, 4vw, 48px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-title {
+  font-family: "Jua", "Gowun Dodum", sans-serif;
+  font-size: clamp(24px, 3.2vw, 34px);
+  margin: 0;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-title .emoji {
+  font-size: 1.1em;
+}
+
+.home-btn {
+  background: rgba(255, 255, 255, 0.22);
+  border: none;
+  color: #fff;
+  font-family: inherit;
+  font-size: clamp(15px, 1.8vw, 18px);
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.home-btn:active {
+  transform: scale(0.96);
+  background: rgba(255, 255, 255, 0.32);
+}
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: clamp(20px, 3vw, 36px) clamp(16px, 4vw, 40px);
+}
+
+/* ---------- 메인 화면(단원별 카드 그리드) ---------- */
+
+.unit-section {
+  margin-bottom: clamp(28px, 4vw, 44px);
+}
+
+.unit-heading {
+  font-family: "Jua", sans-serif;
+  font-size: clamp(19px, 2.2vw, 24px);
+  color: var(--header-bg-deep);
+  margin: 0 0 14px 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.unit-heading::before {
+  content: "📘";
+  font-size: 0.9em;
+}
+
+.round-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: clamp(14px, 2vw, 22px);
+}
+
+.round-card {
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: clamp(20px, 2.4vw, 26px) clamp(18px, 2.2vw, 24px);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  text-align: left;
+  font-family: inherit;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.round-card:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) {
+  .round-card:hover {
+    border-color: var(--header-bg);
+    box-shadow: 0 8px 20px rgba(80, 60, 20, 0.14);
+    transform: translateY(-2px);
+  }
+}
+
+.round-card .round-num {
+  font-family: "Jua", sans-serif;
+  font-size: clamp(22px, 2.6vw, 28px);
+  color: var(--header-bg-deep);
+}
+
+.round-card .round-progress {
+  font-size: clamp(14px, 1.6vw, 16px);
+  color: var(--text-sub);
+}
+
+/* ---------- 회차 상세 화면 ---------- */
+
+.round-view-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: clamp(18px, 2.4vw, 26px);
+}
+
+.round-view-title {
+  font-family: "Jua", sans-serif;
+  font-size: clamp(21px, 2.6vw, 28px);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.round-view-title .unit-tag {
+  display: block;
+  font-family: "Gowun Dodum", sans-serif;
+  font-size: clamp(14px, 1.6vw, 16px);
+  color: var(--text-sub);
+  margin-top: 4px;
+}
+
+.replay-all-btn {
+  background: linear-gradient(135deg, var(--accent-replay), var(--accent-replay-deep));
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: clamp(15px, 1.8vw, 17px);
+  padding: 14px 24px;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(112, 80, 224, 0.35);
+  transition: transform 0.1s ease;
+}
+
+.replay-all-btn:active {
+  transform: scale(0.96);
+}
+
+.replay-all-btn[data-playing="true"] {
+  background: linear-gradient(135deg, #ff7070, #e65454);
+  box-shadow: 0 4px 12px rgba(230, 84, 84, 0.35);
+}
+
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dictation-item {
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: clamp(14px, 1.8vw, 18px) clamp(16px, 2vw, 22px);
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 20px);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.dictation-item[data-active="true"] {
+  border-color: var(--accent-speak);
+  background: #fff7f0;
+}
+
+.item-num {
+  font-family: "Jua", sans-serif;
+  font-size: clamp(18px, 2vw, 22px);
+  color: #fff;
+  background: var(--header-bg);
+  width: clamp(34px, 3.6vw, 42px);
+  height: clamp(34px, 3.6vw, 42px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.item-text-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.item-text {
+  font-size: clamp(18px, 2.4vw, 23px);
+  line-height: 1.5;
+  word-break: keep-all;
+  transition: filter 0.2s ease;
+}
+
+.item-text[data-hidden="true"] {
+  filter: blur(9px);
+  user-select: none;
+}
+
+.item-hint {
+  font-size: clamp(12px, 1.4vw, 14px);
+  color: var(--text-sub);
+  margin-top: 2px;
+}
+
+.item-controls {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  border: none;
+  border-radius: 999px;
+  min-width: clamp(48px, 5vw, 56px);
+  min-height: clamp(48px, 5vw, 56px);
+  font-size: clamp(20px, 2.4vw, 24px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.icon-btn:active {
+  transform: scale(0.92);
+}
+
+.speak-btn {
+  background: linear-gradient(135deg, var(--accent-speak), var(--accent-speak-deep));
+  box-shadow: 0 3px 10px rgba(245, 125, 51, 0.35);
+}
+
+.speak-btn[data-playing="true"] {
+  filter: brightness(0.9);
+}
+
+.reveal-btn {
+  background: linear-gradient(135deg, var(--accent-reveal), var(--accent-reveal-deep));
+  box-shadow: 0 3px 10px rgba(44, 163, 119, 0.35);
+}
+
+.reveal-btn[data-revealed="true"] {
+  background: linear-gradient(135deg, #b9c1cc, #9aa3af);
+  box-shadow: none;
+}
+
+.tts-warning {
+  background: #fff3cd;
+  border: 2px solid #ffe08a;
+  color: #6b5300;
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  font-size: 15px;
+  margin-bottom: 20px;
+  display: none;
+}
+
+.tts-warning[data-show="true"] {
+  display: block;
+}
+
+footer.app-footer {
+  text-align: center;
+  color: var(--text-sub);
+  font-size: 13px;
+  padding: 24px 16px 8px;
+}
+
+/* 태블릿 가로/세로 폭 조정 */
+@media (max-width: 480px) {
+  .dictation-item {
+    flex-wrap: wrap;
+  }
+  .item-controls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
