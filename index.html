@@ -10,9 +10,15 @@
 <body>
   <header class="app-header">
     <h1 class="app-title"><span class="emoji">✏️</span>현우의 받아쓰기 연습</h1>
-    <button id="homeBtn" class="home-btn" type="button" style="visibility: hidden">
-      <span>🏠</span><span>회차 목록</span>
-    </button>
+    <div class="header-controls">
+      <div class="voice-select-wrap">
+        <label for="voiceSelect">🎙️</label>
+        <select id="voiceSelect"></select>
+      </div>
+      <button id="homeBtn" class="home-btn" type="button" style="visibility: hidden">
+        <span>🏠</span><span>회차 목록</span>
+      </button>
+    </div>
   </header>
 
   <main id="main"></main>

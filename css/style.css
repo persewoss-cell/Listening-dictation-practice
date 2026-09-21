@@ -67,6 +67,40 @@ body {
   font-size: 1.1em;
 }
 
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.voice-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  padding: 6px 14px 6px 16px;
+  min-height: 48px;
+}
+
+.voice-select-wrap label {
+  font-size: clamp(16px, 1.8vw, 20px);
+}
+
+.voice-select-wrap select {
+  font-family: inherit;
+  font-size: clamp(13px, 1.5vw, 15px);
+  font-weight: 600;
+  color: #fff;
+  background: transparent;
+  border: none;
+  max-width: 34vw;
+}
+
+.voice-select-wrap select option {
+  color: #33383f;
+}
+
 .home-btn {
   background: rgba(255, 255, 255, 0.22);
   border: none;

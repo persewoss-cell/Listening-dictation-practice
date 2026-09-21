@@ -5,20 +5,34 @@ const homeBtn = document.getElementById("homeBtn");
 
 // ---------------- 음성 재생 (Web Speech API) ----------------
 // 단어(어절) 단위로 끊어서 순서대로 재생 -> 문장 안 띄어쓰기 지점에서
-// 살짝 더 쉬어 읽는 효과를 준다. 재생 속도도 기본보다 느리게 설정.
-const SPEAK_RATE = 0.82;
-const WORD_PAUSE_MS = 260; // 어절 사이 쉬는 시간
+// 살짝 더 쉬어 읽는 효과를 준다.
+const SPEAK_RATE = 0.95;
+const WORD_PAUSE_MS = 160; // 어절 사이 쉬는 시간
 const ITEM_PAUSE_MS = 1100; // 전체 다시듣기에서 문항 사이 쉬는 시간
+const VOICE_STORAGE_KEY = "hyunwoo-dictation-voice-uri";
 
-let koVoice = null;
+let koVoices = []; // 이 기기/브라우저가 제공하는 한국어 음성 목록
+let koVoice = null; // 현재 선택된 음성
 let playToken = 0; // 재생 세대 토큰: 새 재생이 시작되면 이전 재생 체인을 무효화
+const voiceChangeListeners = [];
 
 function pickKoreanVoice() {
   const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  koVoices = voices.filter((v) => v.lang && v.lang.toLowerCase().startsWith("ko"));
+
+  const savedURI = localStorage.getItem(VOICE_STORAGE_KEY);
   koVoice =
-    voices.find((v) => v.lang === "ko-KR") ||
-    voices.find((v) => v.lang && v.lang.startsWith("ko")) ||
+    (savedURI && koVoices.find((v) => v.voiceURI === savedURI)) ||
+    koVoices.find((v) => v.lang === "ko-KR") ||
+    koVoices[0] ||
     null;
+
+  voiceChangeListeners.forEach((fn) => fn());
+}
+
+function setKoreanVoice(voiceURI) {
+  koVoice = koVoices.find((v) => v.voiceURI === voiceURI) || null;
+  if (koVoice) localStorage.setItem(VOICE_STORAGE_KEY, koVoice.voiceURI);
 }
 
 if (window.speechSynthesis) {
@@ -299,6 +313,39 @@ function renderRoundView(round) {
 homeBtn.addEventListener("click", () => {
   window.location.hash = "#/";
 });
+
+// ---------------- 목소리 선택 ----------------
+
+const voiceSelectWrap = document.querySelector(".voice-select-wrap");
+const voiceSelect = document.getElementById("voiceSelect");
+
+function renderVoiceOptions() {
+  if (!supportsTTS()) {
+    voiceSelectWrap.style.display = "none";
+    return;
+  }
+  if (koVoices.length === 0) {
+    voiceSelectWrap.style.display = "none";
+    return;
+  }
+  voiceSelectWrap.style.display = "flex";
+  voiceSelect.innerHTML = "";
+  koVoices.forEach((v) => {
+    const opt = document.createElement("option");
+    opt.value = v.voiceURI;
+    opt.textContent = v.name;
+    if (koVoice && v.voiceURI === koVoice.voiceURI) opt.selected = true;
+    voiceSelect.appendChild(opt);
+  });
+}
+
+voiceSelect.addEventListener("change", () => {
+  stopSpeaking();
+  setKoreanVoice(voiceSelect.value);
+});
+
+voiceChangeListeners.push(renderVoiceOptions);
+renderVoiceOptions();
 
 window.addEventListener("hashchange", render);
 window.addEventListener("DOMContentLoaded", render);
