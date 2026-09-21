@@ -242,11 +242,23 @@ function renderRoundView(round) {
     </h2>
   `;
 
+  const headActions = document.createElement("div");
+  headActions.className = "head-actions";
+
   const replayBtn = document.createElement("button");
   replayBtn.type = "button";
   replayBtn.className = "replay-all-btn";
   replayBtn.innerHTML = `<span>🔁</span><span>전체 다시듣기</span>`;
-  head.appendChild(replayBtn);
+  headActions.appendChild(replayBtn);
+
+  const revealAllBtn = document.createElement("button");
+  revealAllBtn.type = "button";
+  revealAllBtn.className = "reveal-all-btn";
+  revealAllBtn.dataset.revealed = "false";
+  revealAllBtn.innerHTML = `<span>👁</span><span>전체 답 보기</span>`;
+  headActions.appendChild(revealAllBtn);
+
+  head.appendChild(headActions);
   mainEl.appendChild(head);
 
   const list = document.createElement("div");
@@ -291,11 +303,14 @@ function renderRoundView(round) {
     revealBtn.setAttribute("aria-label", `${idx + 1}번 문항 정답 보기`);
     revealBtn.textContent = "👁";
 
+    function setRevealed(revealed) {
+      textEl.dataset.hidden = revealed ? "false" : "true";
+      revealBtn.dataset.revealed = revealed ? "true" : "false";
+      hint.style.visibility = revealed ? "hidden" : "visible";
+    }
+
     revealBtn.addEventListener("click", () => {
-      const hidden = textEl.dataset.hidden === "true";
-      textEl.dataset.hidden = hidden ? "false" : "true";
-      revealBtn.dataset.revealed = hidden ? "true" : "false";
-      hint.style.visibility = hidden ? "hidden" : "visible";
+      setRevealed(textEl.dataset.hidden === "true");
     });
 
     speakBtn.addEventListener("click", () => {
@@ -320,7 +335,16 @@ function renderRoundView(round) {
     row.appendChild(controls);
     list.appendChild(row);
 
-    itemRows.push({ row, speakBtn, text });
+    itemRows.push({ row, speakBtn, text, setRevealed });
+  });
+
+  revealAllBtn.addEventListener("click", () => {
+    const revealAll = revealAllBtn.dataset.revealed !== "true";
+    itemRows.forEach((r) => r.setRevealed(revealAll));
+    revealAllBtn.dataset.revealed = revealAll ? "true" : "false";
+    revealAllBtn.querySelector("span:last-child").textContent = revealAll
+      ? "전체 답 가리기"
+      : "전체 답 보기";
   });
 
   replayBtn.addEventListener("click", () => {
