@@ -4,18 +4,19 @@ const mainEl = document.getElementById("main");
 const homeBtn = document.getElementById("homeBtn");
 
 // ---------------- 음성 재생 (Web Speech API) ----------------
-// 간격이 0이면 문장을 통째로 한 번에 재생해 가장 자연스럽게 읽고,
-// 간격을 올리면 어절 단위로 끊어서 그만큼 쉬어 읽는다.
+// 띄어 읽기가 꺼져 있으면 문장을 통째로 한 번에 재생해 가장 자연스럽게 읽고,
+// 켜져 있으면 어절 단위로 살짝(0.02초)씩 쉬어 읽는다.
 const DEFAULT_SPEAK_RATE = 1;
-const DEFAULT_WORD_PAUSE_MS = 0;
+const PAUSE_OFF_MS = 0;
+const PAUSE_ON_MS = 20;
 const ITEM_PAUSE_MS = 1100; // 전체 다시듣기에서 문항 사이 쉬는 시간
 const VOICE_STORAGE_KEY = "hyunwoo-dictation-voice-uri";
 const RATE_STORAGE_KEY = "hyunwoo-dictation-rate";
-const PAUSE_STORAGE_KEY = "hyunwoo-dictation-pause-ms";
+const PAUSE_STORAGE_KEY = "hyunwoo-dictation-pause-on";
 
 let SPEAK_RATE = parseFloat(localStorage.getItem(RATE_STORAGE_KEY)) || DEFAULT_SPEAK_RATE;
-let WORD_PAUSE_MS = parseInt(localStorage.getItem(PAUSE_STORAGE_KEY), 10);
-if (Number.isNaN(WORD_PAUSE_MS)) WORD_PAUSE_MS = DEFAULT_WORD_PAUSE_MS;
+let PAUSE_ON = localStorage.getItem(PAUSE_STORAGE_KEY) === "1";
+let WORD_PAUSE_MS = PAUSE_ON ? PAUSE_ON_MS : PAUSE_OFF_MS;
 
 let koVoices = []; // 이 기기/브라우저가 제공하는 한국어 음성 목록
 let koVoice = null; // 현재 선택된 음성
@@ -412,7 +413,7 @@ voiceRefreshBtn.addEventListener("click", () => {
 voiceChangeListeners.push(renderVoiceOptions);
 renderVoiceOptions();
 
-// ---------------- 속도 / 간격 설정 패널 ----------------
+// ---------------- 속도 설정 / 띄어 읽기 패널 ----------------
 
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsBackdrop = document.getElementById("settingsBackdrop");
@@ -420,18 +421,16 @@ const settingsCloseBtn = document.getElementById("settingsCloseBtn");
 const settingsResetBtn = document.getElementById("settingsResetBtn");
 const rateRange = document.getElementById("rateRange");
 const rateValue = document.getElementById("rateValue");
-const pauseRange = document.getElementById("pauseRange");
-const pauseValue = document.getElementById("pauseValue");
-
-function formatPause(ms) {
-  return ms <= 0 ? "자연스럽게 이어 읽기" : `${(ms / 1000).toFixed(2)}초`;
-}
+const pauseToggle = document.getElementById("pauseToggle");
+const pauseHint = document.getElementById("pauseHint");
 
 function syncSettingsUI() {
   rateRange.value = String(SPEAK_RATE);
   rateValue.textContent = `${SPEAK_RATE.toFixed(2)}배`;
-  pauseRange.value = String(WORD_PAUSE_MS / 1000);
-  pauseValue.textContent = formatPause(WORD_PAUSE_MS);
+  pauseToggle.checked = PAUSE_ON;
+  pauseHint.textContent = PAUSE_ON
+    ? "어절 사이를 살짝(0.02초)씩 끊어서 읽어요"
+    : "어절을 붙여서 자연스럽게 읽어요";
 }
 
 function openSettings() {
@@ -455,15 +454,17 @@ rateRange.addEventListener("input", () => {
   localStorage.setItem(RATE_STORAGE_KEY, String(SPEAK_RATE));
 });
 
-pauseRange.addEventListener("input", () => {
-  WORD_PAUSE_MS = Math.round(parseFloat(pauseRange.value) * 1000);
-  pauseValue.textContent = formatPause(WORD_PAUSE_MS);
-  localStorage.setItem(PAUSE_STORAGE_KEY, String(WORD_PAUSE_MS));
+pauseToggle.addEventListener("change", () => {
+  PAUSE_ON = pauseToggle.checked;
+  WORD_PAUSE_MS = PAUSE_ON ? PAUSE_ON_MS : PAUSE_OFF_MS;
+  localStorage.setItem(PAUSE_STORAGE_KEY, PAUSE_ON ? "1" : "0");
+  syncSettingsUI();
 });
 
 settingsResetBtn.addEventListener("click", () => {
   SPEAK_RATE = DEFAULT_SPEAK_RATE;
-  WORD_PAUSE_MS = DEFAULT_WORD_PAUSE_MS;
+  PAUSE_ON = false;
+  WORD_PAUSE_MS = PAUSE_OFF_MS;
   localStorage.removeItem(RATE_STORAGE_KEY);
   localStorage.removeItem(PAUSE_STORAGE_KEY);
   syncSettingsUI();

@@ -45,14 +45,14 @@
         <div class="settings-hint">느리게 ─────── 빠르게</div>
       </div>
 
-      <div class="settings-row">
-        <div class="settings-label">
-          <span>띄어쓰기 간격</span>
-          <span id="pauseValue" class="settings-value">자연스럽게 이어 읽기</span>
-        </div>
-        <input id="pauseRange" type="range" min="0" max="0.5" step="0.02" value="0" />
-        <div class="settings-hint">자연스럽게 이어 읽기 ─────── 또박또박 끊어 읽기</div>
+      <div class="settings-row settings-row-inline">
+        <span class="settings-label-text">띄어 읽기</span>
+        <label class="toggle-switch">
+          <input id="pauseToggle" type="checkbox" />
+          <span class="toggle-slider"></span>
+        </label>
       </div>
+      <div id="pauseHint" class="settings-hint settings-hint-left">어절을 붙여서 자연스럽게 읽어요</div>
 
       <button id="settingsResetBtn" class="reset-btn" type="button">기본값으로 되돌리기</button>
     </div>
