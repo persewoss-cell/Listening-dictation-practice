@@ -358,15 +358,23 @@ main {
 }
 
 .item-text {
+  position: relative;
   font-size: clamp(18px, 2.4vw, 23px);
   line-height: 1.5;
   word-break: keep-all;
-  transition: filter 0.2s ease;
 }
 
 .item-text[data-hidden="true"] {
-  filter: blur(9px);
+  color: transparent;
   user-select: none;
+}
+
+.item-text[data-hidden="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 2px 0;
+  background: linear-gradient(135deg, #c7cfdb, #aeb8c7);
+  border-radius: 8px;
 }
 
 .item-hint {
