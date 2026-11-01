@@ -67,8 +67,11 @@ body {
   flex-shrink: 0;
 }
 
-.app-title .emoji {
-  font-size: 1.1em;
+.app-title .app-icon {
+  width: clamp(30px, 3.6vw, 40px);
+  height: clamp(30px, 3.6vw, 40px);
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .header-controls {
